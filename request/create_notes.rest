@@ -1,0 +1,15 @@
+POST http://localhost:3001/api/notes
+content-type: application/json
+
+{
+    "content": "prueba api POST desde extension rest client",
+    "important": "true"
+}
+
+###
+
+POST http://localhost:3001/api/notes
+content-type: application/json
+
+{
+}

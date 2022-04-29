@@ -1,0 +1,7 @@
+PUT http://localhost:3001/api/notes/623dbb4fbf9c7f45f86dacaa
+content-type: application/json
+
+{
+    "content": "Fullstack react",
+    "important": "true"
+}

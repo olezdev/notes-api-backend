@@ -1,5 +1,7 @@
+const jwt = require('jsonwebtoken')
 const notesRouter = require('express').Router()
 const Note = require('../models/Note')
+const User = require('../models/User')
 
 // app.get('/api/notes', (request, response) => {
 //     Note.find({}).then(notes => {
@@ -8,7 +10,11 @@ const Note = require('../models/Note')
 // })
 
 notesRouter.get('/', async (request, response) => {
-  const notes = await Note.find({})
+  // const notes = await Note.find({})
+  const notes = await Note.find({}).populate('user', {
+    username: 1,
+    name: 1
+  })
   response.json(notes)
 })
 
@@ -17,18 +23,22 @@ notesRouter.get('/', async (request, response) => {
 //   response.json(notes)
 // })
 
-notesRouter.get('/:id', (request, response, next) => {
+notesRouter.get('/:id', async (request, response, next) => {
   // const id = Number(request.params.id)
   // const note = notes.find(note => note.id === id)
   const { id } = request.params
-  Note.findById(id).then(note => {
-    return note
-      ? response.json(note)
-      : response.status(404).end()
-  }).catch(next)
+  // await Note.findById(id).then(note => {
+  //   return note
+  //     ? response.json(note)
+  //     : response.status(404).end()
+  // }).catch(next)
+  const note = await Note.findById(id)
+  return note
+    ? response.json(note)
+    : response.status(404).end()
 })
 
-notesRouter.put('/:id', (request, response, next) => {
+notesRouter.put('/:id', async (request, response, next) => {
   const { id } = request.params
   const note = request.body
 
@@ -37,7 +47,7 @@ notesRouter.put('/:id', (request, response, next) => {
     important: note.important
   }
 
-  Note.findByIdAndUpdate(id, newNoteInfo, { new: true })
+  await Note.findByIdAndUpdate(id, newNoteInfo, { new: true })
     .then(result => {
       response.json(result)
     }).catch(err => next(err))
@@ -55,8 +65,13 @@ notesRouter.put('/:id', (request, response, next) => {
 notesRouter.delete('/:id', async (request, response, next) => {
   const { id } = request.params
   // notes = notes.filter(note => note.id != id)
-  await Note.findByIdAndRemove(id)
-  response.status(204).end()
+  try {
+    await Note.findByIdAndRemove(id)
+    response.status(204).end()
+  } catch (error) {
+    next(error)
+  }
+
 })
 
 // no se recomienda pero por el momento usamos esta solicitud
@@ -102,20 +117,44 @@ notesRouter.delete('/:id', async (request, response, next) => {
 // })
 
 notesRouter.post('/', async (request, response, next) => {
-  const note = request.body
-  console.log(note)
+  // const note = request.body
+  // console.log(note)
+  const {
+    content,
+    important = false
+  } = request.body
 
-  if (!note || !note.content) {
+  const authorization = request.get('authorization')
+  let token = null
+console.log({authorization})
+
+  if (authorization && authorization.toLowerCase().startsWith('bearer')) {
+    token = authorization.substring(7)
+  }
+
+  const decodedToken = jwt.verify(token, process.env.SECRET)
+
+  if (!token || !decodedToken.id) {
+    return response.status(401).json({ error: 'token missing or invalid' })
+  }
+  
+  const {id: userId} = decodedToken
+  const user = await User.findById(userId)
+
+  if (!content) {
     return response.status(400).json({
-      error: 'note.content is missing'
+      error: 'required "content" field is missing'
     })
   }
 
   const newNote = new Note({
-    content: note.content,
-    important: typeof note.important != 'undefined' ? note.important : false,
-    date: new Date().toISOString()
+    content,
+    date: new Date().toISOString(),
+    important,
+    user: user._id
   })
+
+  console.log(newNote)
 
   // newNote.save().then(savedNote => {
   //     response.json(savedNote)
@@ -123,6 +162,9 @@ notesRouter.post('/', async (request, response, next) => {
 
   try {
     const savedNotes = await newNote.save()
+
+    user.notes = user.notes.concat(savedNotes._id)
+    await user.save()
     response.json(savedNotes)
   } catch (error) {
     next(error)

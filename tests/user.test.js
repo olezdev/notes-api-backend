@@ -32,7 +32,6 @@ describe.only('creating a new user', () => {
       .expect('Content-Type', /application\/json/)
 
     const usersAtEnd = await getUsers()
-
     expect(usersAtEnd).toHaveLength(usersAtStart.length + 1)
 
     const usersnames = usersAtEnd.map(u => u.username)

@@ -1,7 +1,7 @@
-PUT http://localhost:3001/api/notes/623dbb4fbf9c7f45f86dacaa
+PUT http://localhost:3001/api/notes/627938d4c407ec0a986f3d5b
 content-type: application/json
 
 {
-    "content": "Fullstack react",
+    "content": "Modificar nota creada con userId",
     "important": "true"
 }

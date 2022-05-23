@@ -1,0 +1,39 @@
+POST http://localhost:3001/api/notes
+content-type: application/json
+
+{
+    "content": "prueba api POST desde extension rest client",
+    "important": "true"
+}
+
+###
+
+POST http://localhost:3001/api/notes
+content-type: application/json
+
+{
+}
+
+
+###
+
+POST http://localhost:3001/api/notes
+content-type: application/json
+
+{
+    "content": "Nota creada con userId",
+    "important": "true",
+    "userId": "627934bd0f42963d540208d9"
+}
+
+
+###
+
+POST http://localhost:3001/api/notes
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYyNzkzNGJkMGY0Mjk2M2Q1NDAyMDhkOSIsInVzZXJuYW1lIjoib2xlemRldiIsImlhdCI6MTY1MzMzNDc3Nn0.qPr4SYnrtUn2U8jsCLqIdfK2m9V2cUYtQYpQTlDvMpQ
+
+{
+    "content": "Prueba con jwt",
+    "important": "true"
+}
